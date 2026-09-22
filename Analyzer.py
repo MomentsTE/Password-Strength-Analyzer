@@ -131,14 +131,77 @@ def get_strength_rating(score, password, check_results):
         return "Very Weak"
 
     if score <= 2:
-        return " Very Weak"
+        rating =  " Very Weak"
     elif score <= 4:
-        return "Weak"
+        rating = "Weak"
     elif score <= 6:
-        return "Moderate"
+        rating = "Moderate"
     elif score <= 8:
-        return "Strong"
+        rating = "Strong"
     else:
-        return "Very Strong"
+        rating = "Very Strong"
 
-    has_
+    has_low_entropy_pattern = ( 
+        not checks_by_name.get("repeated_characters", True)
+        or not checks_by_name.get("sequential_patterns", True)
+        )
+
+    if has_low_entropy_pattern:
+        current_index = RATING_ORDER.index(rating)
+        weak_index = RATING_ORDER.index("Weak")
+        rating = RATING_ORDER[min(current_index, weak_index)]
+
+    return rating
+
+def get_recommendations(check_results):
+    recommendations = []
+
+    failed_names = {r["name"] for r in check_results if not r["passed"]}
+
+    if "length" in failed_names:
+        recommendations.append("Use a longer password (aim for 12+ characters).")
+    if "uppercase" in failed_names:
+        recommendations.append("Add at least one uppercase letter.")
+    if "lowercase" in failed_names:
+        recommendations.append("Add at least one lowercase letter.")
+    if "numbers" in failed_names:
+        recommendations.append("Add at least one number.")
+    if "special_characters" in failed_names:
+        recommendations.append("Add at least one special character (e.g., !, @, #, $).")
+    if "common_password" in failed_names:
+        recommendations.append("Avoid using common passwords found in known password lists.")
+    if "repeated_characters" in failed_names:
+        recommendations.append("Avoid repeating the same character multiple times in a row.")
+    if "sequential_patterns" in failed_names:
+        recommendations.append("Avoid using predictable sequences like '123' or 'qwerty'")
+
+    recommendations.append("Consider using a passphrase (multiple random words)")
+    recommendations.append("Avoid using personal information (names, birthdays, etc.)")
+
+    return recommendations
+
+def analyze_password(password):
+
+    if password=="":
+        return {
+        "password_length": 0,
+        "score": 0,
+        "max_score": 10,
+        "rating": "Very Weak",
+        "checks": [],
+        "recommendations": ["Enter a password - an empty passsword has no strength"]
+        }
+
+    check_results = run_all_checks(password)
+    score = calculate_total_score(check_results)
+    rating = get_strength_rating(score, password, check_results)
+    recommendations = get_recommendations(check_results)
+
+    return {
+        "password_length": len(password),
+        "score": score,
+        "max_score": 10,
+        "rating": rating,
+        "checks": check_results,
+        "recommendations": recommendations
+    }
