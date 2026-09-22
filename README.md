@@ -44,7 +44,6 @@ I'm transitioning into software engineering and building a genuine interest in c
 ```
 password-strength-analyzer/
 ├── README.md
-├── requirements.txt
 ├── main.py                       # CLI entry point (handles input/output)
 ├── password_analyzer/
 │   ├── __init__.py
